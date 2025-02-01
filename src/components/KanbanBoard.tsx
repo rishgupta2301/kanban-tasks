@@ -7,6 +7,9 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
@@ -16,6 +19,12 @@ function KanbanBoard() {
   console.log(columns);
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+
+  const sensors = useSensors(useSensor(PointerSensor, {
+    activationConstraint: {
+        distance: 100 // 300px
+    }
+  }));
 
   function generateId() {
     return Math.floor(Math.random() * 10001);
@@ -64,7 +73,7 @@ function KanbanBoard() {
 
   return (
     <div className="flex min-h-screen m-auto w-full items-center overflow-x-auto overflow-y-hidden px-[40px]">
-      <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="m-auto flex gap-4">
           <div className="flex gap-4">
             <SortableContext items={columnsId}>
