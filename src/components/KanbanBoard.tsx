@@ -67,6 +67,14 @@ function KanbanBoard() {
     setTasks(tasks.filter((task) => task.id !== id));
   }
 
+  function updateTask(id: Id, content:string){
+    const newTasks = tasks.map((task) => {
+        if(task.id !== id)return task;
+        return {...task, content }
+    })
+    setTasks(newTasks);
+  }
+
   function onDragStart(event: DragStartEvent) {
     console.log("DRAG START", event);
     if (event.active.data.current?.column) {
@@ -113,6 +121,7 @@ function KanbanBoard() {
                     updateColumn={updateColumn}
                     createTask={createTask}
                     deleteTask={deleteTask}
+                    updateTask={updateTask}
                     column={col}
                     tasks = {tasks.filter((task) => task.columnId === col.id)}
                   />
@@ -138,7 +147,8 @@ function KanbanBoard() {
                 updateColumn={updateColumn}
                 createTask={createTask}
                 deleteTask={deleteTask}
-                tasks={tasks}
+                updateTask={updateTask}
+                tasks = {tasks.filter((task) => task.columnId === activeColumn.id)}
               />
             )}
           </DragOverlay>,
