@@ -1,17 +1,21 @@
 import { useSortable } from "@dnd-kit/sortable";
 import TrashIcon from "../icons/TrashIcon";
-import { Column, Id } from "../types";
+import { Column, Id, Task } from "../types";
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
+import PlusIcon from "../icons/PlusIcon";
+import TaskCard from "./TaskCard";
 
 interface Props {
   column: Column;
   deleteColumn: (id: Id) => void; //we are going to receive it from kanbanBoard as a property
   updateColumn: (id: Id, title:string) => void;
+  createTask: (columnId: Id) => void;
+  tasks: Task[];
 }
 
 function ColumnContainer(props: Props) {
-  const { column, deleteColumn, updateColumn } = props;
+  const { column, deleteColumn, updateColumn, createTask, tasks } = props;
   const [editMode, setEditMode] = useState(false);
 
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } =
@@ -34,6 +38,8 @@ function ColumnContainer(props: Props) {
         
     </div>
   }
+
+
 
   return (
     <div ref={setNodeRef} style={style} className="bg-[#161C22] w-[300px] h-[500px] max-h-[400px] rounded-md flex flex-col">
@@ -63,8 +69,17 @@ function ColumnContainer(props: Props) {
           <TrashIcon />
         </button>
       </div>
-      <div className="flex flex-grow">Content</div>
-      <div>Footer</div>
+      <div className="flex flex-grow flex-col gap-4 p-2 overflow-y-auto overflow-x-hidden">{tasks.map((task) => {
+        return (
+            <TaskCard key={task.id} task={task} />
+        )
+      })}</div>
+      <button className="flex gap-2 items-center border-[#161C22] border-2 rounded-md p-4 border-x-[#161C22] hover:text-rose-500 active:bg-black"
+      onClick={() => createTask(column.id)}
+      >  
+        <PlusIcon /> 
+         Add task
+         </button>
     </div>
   );
 }
