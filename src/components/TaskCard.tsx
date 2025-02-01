@@ -22,7 +22,9 @@ function TaskCard({task, deleteTask, updateTask}: Props) {
         return <div className="bg-[#0D1117] p-2 h-[70px] min-h-[70px] items-center flex text-left rounded-xl hover:ring-2 hover:ring-inset hover:ring-rose-500  cursor-grab relative" >
         <textarea className="bg-[#0D1117] h-[90%] w-full resize-none border-none rounded bg-transparent text-white focus:outline-none" value={task.content} autoFocus placeholder="Task content here.." onBlur={toggleEditMode}
         onKeyDown={(e) => {
-            if(e.key === 'Enter')toggleEditMode();
+            if(e.key === 'Enter' && e.shiftKey){
+                toggleEditMode();
+            }
         }}
         onChange={(e) => updateTask(task.id, e.target.value ) }
         name="" id=""></textarea>
