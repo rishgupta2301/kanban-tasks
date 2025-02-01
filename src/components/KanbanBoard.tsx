@@ -22,7 +22,7 @@ function KanbanBoard() {
 
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
-        distance: 100 // 300px
+        distance: 3 // 300px
     }
   }));
 
@@ -42,6 +42,14 @@ function KanbanBoard() {
   function deleteColumn(id: Id) {
     setColumns(columns.filter((col) => col.id !== id));
   }
+
+  function updateColumn(id:Id, title:string){
+    const newColumns = columns.map((col) => {
+        if(col.id !== id) return col;
+        return {...col, title};
+    });
+    setColumns(newColumns)
+}
 
   function onDragStart(event: DragStartEvent) {
     console.log("DRAG START", event);
@@ -82,6 +90,7 @@ function KanbanBoard() {
                   <ColumnContainer
                     key={col.id}
                     deleteColumn={deleteColumn}
+                    updateColumn={updateColumn}
                     column={col}
                   />
                 </div>
@@ -103,6 +112,7 @@ function KanbanBoard() {
               <ColumnContainer
                 column={activeColumn}
                 deleteColumn={deleteColumn}
+                updateColumn={updateColumn}
               />
             )}
           </DragOverlay>,
