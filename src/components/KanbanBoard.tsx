@@ -5,6 +5,7 @@ import ColumnContainer from "./ColumnContainer";
 import {
   DndContext,
   DragEndEvent,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
@@ -13,6 +14,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
+import TaskCard from "./TaskCard";
 
 function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
@@ -20,6 +22,7 @@ function KanbanBoard() {
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -81,26 +84,72 @@ function KanbanBoard() {
       setActiveColumn(event.active.data.current.column);
       return;
     }
-  }
+    if (event.active.data.current?.task) {
+      setActiveTask(event.active.data.current.task);
+      return;
+    }
+}
 
   function onDragEnd(event: DragEndEvent) {
+    setActiveColumn(null);
+    setActiveTask(null);
+
     const { active, over } = event;
     if (!over) return; // this means we are not over the valid element/column
 
-    const activeColumnId = active.id;
-    const overColumnId = over.id;
-
-    if (activeColumnId === overColumnId) return;
+    const activeId = active.id;
+    const overId = over.id;
+    
+    if (activeId === overId) return;
 
     setColumns((columns) => {
       const activeColumnIndex = columns.findIndex(
-        (col) => col.id === activeColumnId
+        (col) => col.id === activeId
       );
       const overColumnIndex = columns.findIndex(
-        (col) => col.id === overColumnId
+        (col) => col.id === overId
       );
       return arrayMove(columns, activeColumnIndex, overColumnIndex);
     });
+  }
+
+  function onDragOver(event: DragOverEvent){
+    const { active, over } = event;
+    if (!over) return; // this means we are not over the valid element/column
+
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const isActiveATask = active.data.current?.type === 'Task'; // checking if the current active is task or column
+    const isOverATask = over.data.current?.type === 'Task';  //// checking if the over is task or column
+
+    if(!isActiveATask)return;
+
+    // dropping a task over another task
+    if(isActiveATask && isOverATask){
+        setTasks((tasks) => {
+            const activeIndex = tasks.findIndex((t) => t.id === activeId);
+            const overIndex = tasks.findIndex((t) => t.id === overId);
+
+            tasks[activeIndex].columnId = tasks[overIndex].columnId // if dragging the task over another column
+
+            return arrayMove(tasks, activeIndex, overIndex);
+        })
+    }
+
+    const isOverAColumn = over.data.current?.type === "Column";
+    // dropping a task over a column
+    if(isActiveATask && isOverAColumn){
+        setTasks((tasks) => {
+            const activeIndex = tasks.findIndex((t) => t.id === activeId);
+
+            tasks[activeIndex].columnId = overId// if dragging the task over another column
+
+            return arrayMove(tasks, activeIndex, activeIndex); //triggering re-rendering as i am creating a new array
+        })
+    }
   }
 
   return (
@@ -109,6 +158,7 @@ function KanbanBoard() {
         sensors={sensors}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
+        onDragOver={onDragOver}
       >
         <div className="m-auto flex gap-4">
           <div className="flex gap-4">
@@ -151,6 +201,7 @@ function KanbanBoard() {
                 tasks = {tasks.filter((task) => task.columnId === activeColumn.id)}
               />
             )}
+            {activeTask && <TaskCard task={activeTask} deleteTask={deleteTask} updateTask={updateTask} />}
           </DragOverlay>,
           document.body
         )}
